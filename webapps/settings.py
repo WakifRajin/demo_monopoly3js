@@ -34,19 +34,19 @@ ALLOWED_HOSTS = ['localhost',
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'channels',
     'monopoly'
 ]
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "asgiref.inmemory.ChannelLayer",
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
         "ROUTING": "monopoly.routing.channel_routing",
     },
 }
@@ -84,6 +84,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'webapps.wsgi.application'
+ASGI_APPLICATION = 'webapps.routing.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -147,8 +148,8 @@ EMAIL_HOST_USER = config.get('Email', 'User')
 EMAIL_HOST_PASSWORD = config.get('Email', 'Password')
 EMAIL_USE_SSL = True
 
-print('Email host:port = {host}:{port}, user={user}'.format(
-    host=EMAIL_HOST, port=EMAIL_PORT, user=EMAIL_HOST_USER))
+print(('Email host:port = {host}:{port}, user={user}'.format(
+    host=EMAIL_HOST, port=EMAIL_PORT, user=EMAIL_HOST_USER)))
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'userdata')
 MEDIA_URL = '/userdata/'

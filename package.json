@@ -1,0 +1,24 @@
+{
+  "name": "demo_monopoly3js",
+  "version": "1.0.0",
+  "description": "https://goo.gl/mFvHvU",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WakifRajin/demo_monopoly3js.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/WakifRajin/demo_monopoly3js/issues"
+  },
+  "homepage": "https://github.com/WakifRajin/demo_monopoly3js#readme",
+  "dependencies": {
+    "three": "^0.182.0"
+  }
+}

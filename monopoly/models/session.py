@@ -1,7 +1,7 @@
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 # Used to send mail from within Django
 from django.core.mail import send_mail
@@ -12,7 +12,7 @@ class Session:
 
     def register(self, conf):
         error_message = "Error: "
-        for (key, value) in conf.items():
+        for (key, value) in list(conf.items()):
             if key == "request": continue
             if not value or len(value) == 0:
                 error_message += key + " can't be empty."
