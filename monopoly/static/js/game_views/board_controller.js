@@ -152,9 +152,31 @@ class BoardController {
         this.cameraController = new THREE.OrbitControls(this.camera, this.containerEl);
         this.cameraController.center = new THREE.Vector3(BoardController.SQUARE_SIZE * Board.SIZE / 2, -6, BoardController.SQUARE_SIZE * Board.SIZE / 2);
 
+        // Enable touch-friendly rotation and smooth damping
+        try {
+            this.cameraController.enableDamping = true;
+            this.cameraController.dampingFactor = 0.05;
+            // Some OrbitControls variants expose touch settings; set if available
+            if (typeof this.cameraController.enableTouchRotate !== 'undefined') {
+                this.cameraController.enableTouchRotate = true;
+            }
+            if (this.cameraController.domElement) {
+                this.cameraController.domElement.style.touchAction = 'none';
+            }
+        } catch (e) {
+            // ignore if OrbitControls variant doesn't support these properties
+        }
+
+        // Adjust camera for mobile screens to fit the board better
+        if (window.innerWidth && window.innerWidth < 768) {
+            this.camera.position.set(0, 50, 50);
+        }
+
         this.scene.add(this.camera);
 
         this.containerEl.appendChild(this.renderer.domElement);
+        // Ensure renderer and camera update on window resize
+        window.addEventListener('resize', () => this.resize(), false);
     }
 
     initLights() {

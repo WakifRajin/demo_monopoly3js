@@ -1,4 +1,4 @@
-from channels import Group
+# removed legacy import: from channels import Group
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from channels.auth import http_session_user, channel_session_user, \

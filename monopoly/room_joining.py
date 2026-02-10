@@ -1,4 +1,4 @@
-from channels import Group
+# removed legacy import: from channels import Group
 
 
 # Connected to websocket.connect

@@ -2,8 +2,9 @@ from django.contrib.auth.models import User
 from monopoly.models import Profile
 from monopoly.core.game import *
 from monopoly.ws_handlers.modal_title_enum import *
-from channels import Group
 import json
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 decisions = {}
 HOTEL = 4
@@ -13,7 +14,7 @@ def ws_connect_for_game(message, rooms, games):
     path = message.content['path']
     fields = path.split('/')
     hostname = fields[-1]
-    Group(hostname).add(message.reply_channel)
+    # legacy Group add removed; group membership is handled by the consumer in Channels 2.x
 
     if hostname not in games:
         message.reply_channel.send({
@@ -119,9 +120,14 @@ def handle_roll(hostname, games, changehandlers):
         all_asset = []
         for player in players:
             all_asset.append(player.get_asset())
-        Group(hostname).send({
-            "text": build_game_end_msg(curr_player, all_asset)
-        })
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            hostname,
+            {
+                "type": "room_message",
+                "message": build_game_end_msg(curr_player, all_asset)
+            }
+        )
         return
 
     title_type = ModalTitleType()
@@ -135,10 +141,15 @@ def handle_roll(hostname, games, changehandlers):
         for player in players:
             curr_cash.append(player.get_money())
 
-    Group(hostname).send({
-        "text": build_roll_res_msg(curr_player, steps, move_result.beautify(), is_option, is_cash_change,
-                                   new_event, new_pos, curr_cash, next_player, title, landname, bypass_start)
-    })
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        hostname,
+        {
+            "type": "room_message",
+            "message": build_roll_res_msg(curr_player, steps, move_result.beautify(), is_option, is_cash_change,
+                                           new_event, new_pos, curr_cash, next_player, title, landname, bypass_start)
+        }
+    )
 
 
 def handle_end_game(hostname, games):
@@ -148,9 +159,14 @@ def handle_end_game(hostname, games):
     curr_player = game.get_current_player().get_index()
     for player in players:
         all_asset.append(player.get_asset())
-    Group(hostname).send({
-        "text": build_game_end_msg(curr_player, all_asset)
-    })
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        hostname,
+        {
+            "type": "room_message",
+            "message": build_game_end_msg(curr_player, all_asset)
+        }
+    )
     del decisions[hostname]
 
 
@@ -172,9 +188,14 @@ def handle_confirm_decision(hostname, games):
 
     if confirm_result.move_result_type == MoveResultType.BUY_LAND_OPTION:
         tile_id = confirm_result.get_land().get_position()
-        Group(hostname).send({
-            "text": build_buy_land_msg(curr_player, curr_cash, tile_id, next_player)
-        })
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            hostname,
+            {
+                "type": "room_message",
+                "message": build_buy_land_msg(curr_player, curr_cash, tile_id, next_player)
+            }
+        )
     elif confirm_result.move_result_type == MoveResultType.CONSTRUCTION_OPTION:
         tile_id = confirm_result.get_land().get_position()
         build_type = confirm_result.get_land().get_content().get_property()
@@ -182,9 +203,14 @@ def handle_confirm_decision(hostname, games):
             build_type = "house"
         else:
             build_type = "hotel"
-        Group(hostname).send({
-            "text": build_construct_msg(curr_cash, tile_id, build_type, next_player)
-        })
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            hostname,
+            {
+                "type": "room_message",
+                "message": build_construct_msg(curr_cash, tile_id, build_type, next_player)
+            }
+        )
 
 
 def handle_cancel_decision(hostname, games):
@@ -196,17 +222,30 @@ def handle_cancel_decision(hostname, games):
     decision.set_decision(False)
     game.make_decision(decision)
     next_player = game.get_current_player().get_index()
-    Group(hostname).send({
-        "text": build_cancel_decision_msg(next_player)
-    })
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        hostname,
+        {
+            "type": "room_message",
+            "message": build_cancel_decision_msg(next_player)
+        }
+    )
 
 
 def handle_chat(hostname, msg):
-    sender = msg["from"]
-    content = msg["content"]
-    Group(hostname).send({
-        "text": build_chat_msg(sender, content)
-    })
+    sender = msg.get("from", "System")
+    content = msg.get("content", "")
+
+    # Get the channel layer so we can talk to the group
+    channel_layer = get_channel_layer()
+
+    async_to_sync(channel_layer.group_send)(
+        hostname,
+        {
+            "type": "room_message",
+            "message": build_chat_msg(sender, content)
+        }
+    )
 
 
 def build_init_msg(players, cash_change, pos_change, wait_decision, decision, next_player,

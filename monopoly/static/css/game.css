@@ -1,3 +1,19 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;
+}
+
+/* Make the game container and canvas fill the screen */
+#game-container, canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
 #page-container {
     width: 100%;
     height: 100%;
@@ -6,9 +22,10 @@
 }
 
 #game-container {
-    position: relative;
+    position: fixed;
     width: 100%;
     height: 100%;
+    touch-action: none;
 }
 
 #users-container {
@@ -397,6 +414,80 @@
 #rule-indicator-help {
     left: 125px;
     top: 98px;
+}
+
+@media (max-width: 768px) {
+    /* Shrink the chat or move it to the bottom */
+    #chat-container {
+        width: 100%;
+        height: 20%;
+        bottom: 0;
+        left: 0;
+        margin: 0;
+    }
+    /* Make buttons larger for thumbs */
+    .game-button {
+        padding: 15px;
+        font-size: 18px;
+    }
+    /* Shrink the top-right control icons */
+    #controls-container {
+        top: 10px;
+        right: 10px;
+        gap: 5px;
+    }
+
+    #controls-container svg {
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    /* Shrink the user avatars at the top */
+    .user-avatar, #modal-user-avatar {
+        width: 40px !important;
+        height: 40px !important;
+    }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    /* Stack the users at the top in a smaller row */
+    #users-container {
+        flex-direction: row;
+        width: 100%;
+        height: auto;
+        overflow-x: auto;
+        margin: 8px;
+        position: relative;
+        justify-content: flex-start;
+    }
+
+    /* Shrink the chat and make it overlay at the bottom */
+    #chat-container {
+        width: 100vw;
+        height: 25vh;
+        bottom: 0;
+        left: 0;
+        background: rgba(0, 0, 0, 0.7);
+        margin: 0;
+        padding: 8px;
+    }
+
+    /* Make the Dice button much larger for fingers */
+    #dice-wrapper label.large-button {
+        width: 80%;
+        height: 60px;
+        line-height: 60px;
+        font-size: 24px;
+        bottom: 30%;
+    }
+
+    /* Scale down the modal cards so they don't go off-screen */
+    .card {
+        width: 90% !important;
+        left: 5% !important;
+        margin-left: 0 !important;
+    }
 }
 
 #rule-indicator-exit {
