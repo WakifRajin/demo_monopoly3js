@@ -1,41 +1,103 @@
-# Team16: CMU Monopoly
+# Monopoly
 
-## Play Online
-https://goo.gl/mFvHvU
+A browser-based 3D Monopoly demo built with Django, Django Channels and Three.js.
 
-> **Test Users**
-> - User Name: je0k
-> - User Name: ztong
-> - Password for all users: 1
+**This repository is a local/demo app. The previous public "Play Online" link has been removed from this README.**
 
-## Highlights
-### Game 
-![image](https://user-images.githubusercontent.com/7262715/39226713-1cf40220-4822-11e8-903c-d0f5c7e21522.png)
+## Prerequisites
+- Python 3.6+ (recommended)
+- Node.js/npm (optional, only required if you change front-end packages)
 
-### Scoreboard
-![image](https://user-images.githubusercontent.com/7262715/39226735-3e69aa04-4822-11e8-942b-ee6e5051208a.png)
+## Quick install (Windows)
+1. Create and activate a virtual environment:
 
-# New User Tutorial
-![image](https://user-images.githubusercontent.com/7262715/39226845-fcb27342-4822-11e8-9d20-325f245eed33.png)
+```powershell
+python -m venv venv
+venv\Scripts\Activate.ps1   # PowerShell
+```
 
-# Join Game
-![image](https://user-images.githubusercontent.com/7262715/39258760-c7b4f204-4882-11e8-89bf-8ce3f24098b8.png)
+2. Install Python dependencies:
 
-# Login
-![image](https://user-images.githubusercontent.com/7262715/39226864-1cd5b774-4823-11e8-9b2a-6bebdcf083f5.png)
+```powershell
+pip install -r requirement.txt
+```
 
-## Sprint Presentations
- 1. https://docs.google.com/presentation/d/1Y36HwivsSiNB1SoqGMhy1w3d_xAc3nSCdld9G0SGKKY/edit?usp=sharing
- 2. https://docs.google.com/presentation/d/1HHyJW2xknJmWeFV6CiM_MjlmA2Ol-EJYkaNLHm-yITU/edit#slide=id.p
+3. (Optional) Install front-end dependencies if you plan to modify the Three.js code:
 
-## Reference
- - Game board starter template: [3D board game in a browser using WebGL and Three.js](http://www.osd.net/blog/web-development/3d-board-game-in-a-browser-using-webgl-and-three-js-part-3/)
- - [Rolling dice animation](https://codepen.io/tameraydin/pen/CADvB)
- - Media assets:
-   - [Mario Sculpture](https://clara.io/view/36463f26-3b2c-4569-aac7-a06020a83016/image)
-   - [R2-D2](https://clara.io/view/65483955-f6f5-40d4-ae8c-2dc3c081de2c)
-   - [Penguin](https://clara.io/view/46e7f15d-f532-4934-859b-43ba66ade69d/image)
-   - [Final Robot w moves](https://clara.io/view/2c8d9566-5a3b-4f49-93e2-a1c231a30115/image)
-   - [Hotel](https://clara.io/view/2ff5ed67-3665-4cef-a2c1-0d66bf810362/image)
-   - [House](https://clara.io/view/7e543030-2f76-4844-a483-80624ce3640f/image)
-   - [Material Design Icons](http://materialdesignicons.com/)
+```powershell
+npm install
+```
+
+4. Apply database migrations and create a user:
+
+```powershell
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+5. Run the development server:
+
+```powershell
+python manage.py runserver
+```
+
+Open http://127.0.0.1:8000/ in your browser to view the app.
+
+## Notes on Channels and deployment
+- This project uses `channels` for WebSocket handling. For local development the default (in-memory) channel layer may work, but production deployments should configure a proper channel layer (for example Redis) and an ASGI server.
+- Static assets are served by Django in development; for production run `python manage.py collectstatic` and serve static files with a proper web server.
+
+## Gameplay / How to Play
+- Create or join a game from the web UI. Use the on-screen controls to roll dice, move pieces, buy properties, and build houses/hotels.
+- Game logic and player/model code lives under the `monopoly/core` and `monopoly/ws_handlers` packages.
+
+## Development tips
+- Front-end Three.js code is in `monopoly/static/3d_assets` and `monopoly/static/js`.
+- Server code and routing is in the `monopoly` Django app and `webapps` project settings.
+
+## Reference and assets
+- See the `static` folder for included media and 3D asset files.
+
+## Troubleshooting & Redis (optional)
+
+- Quick checks:
+	- Ensure dependencies are installed from `requirement.txt` and that migrations ran (`python manage.py migrate`).
+	- If static files are missing, run `python manage.py collectstatic` (and configure `STATIC_ROOT` for production).
+	- Check browser console/network for WebSocket errors when joining a game.
+
+- Running Redis locally (Docker example):
+
+```powershell
+docker run -p 6379:6379 -d redis:6
+```
+
+- Example `CHANNEL_LAYERS` for `settings.py` (Channels 1.x):
+
+```python
+CHANNEL_LAYERS = {
+		'default': {
+				'BACKEND': 'asgi_redis.RedisChannelLayer',
+				'CONFIG': {
+						'hosts': [('127.0.0.1', 6379)],
+				},
+				# 'ROUTING': 'monopoly.routing.channel_routing',  # optional: point to your routing
+		},
+}
+```
+
+- Start sequence for a Redis-backed local dev server:
+
+```powershell
+# 1. Start Redis (see Docker command above)
+# 2. Activate virtualenv and install requirements
+python -m venv venv
+venv\Scripts\Activate.ps1
+pip install -r requirement.txt
+# 3. Run migrations and start server
+python manage.py migrate
+python manage.py runserver
+```
+
+- Notes:
+	- For production consider running an ASGI server (for example `daphne` or `uvicorn`) and a persistent Redis instance.
+	- If you see `ImportError` or channel-layer errors, confirm the `channels` and `asgi_redis` packages are installed and compatible with `Django==1.11` and `channels==1.1.8`.
